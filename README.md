@@ -2,7 +2,7 @@ This Docker container can be used to compile drivers for unRAID.
 
 ## Instructions
 
-1. Copy unRAID's kernel patches from your unRAID server, found at `/usr/share/<kernel version>` into `patches/`.
+1. Copy unRAID's kernel patches from your unRAID server, found at `/usr/src/<kernel version>` into `patches/`.
 1. Copy your driver source into `drivers`.
 1. Then build the container
     ```sh
