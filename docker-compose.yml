@@ -1,0 +1,5 @@
+services:
+  driver-compiler:
+    image: driver-compiler
+    volumes: 
+      - ./drivers/:/drivers/

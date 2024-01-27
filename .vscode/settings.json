@@ -1,0 +1,12 @@
+{
+  "files.associations": {
+    "*.html": "html",
+    "*.json": "jsonc",
+    "kernel.h": "c",
+    "sched.h": "c",
+    "module.h": "c",
+    "version.h": "c",
+    "serial_reg.h": "c"
+  },
+  "git.ignoreLimitWarning": true,
+}

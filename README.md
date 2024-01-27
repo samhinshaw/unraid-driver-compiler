@@ -6,9 +6,18 @@ This Docker container can be used to compile drivers for unRAID.
 1. Copy your driver source into `drivers`.
 1. Then build the container
     ```sh
-    docker build .
+    docker build . # or docker-compose build driver-compiler
     ```
-1. `<Instructions TBD>` Run the container? Extract?
+1. Run the container
+    ```sh
+    docker-compose run driver-compiler
+    ```
+1. Build the drivers
+    ```sh
+    make -C =/lib/modules/6.1.64-Unraid/build/ M=/drivers/Linux modules
+    # or is it?
+    make
+    ```
 
 ## References
 
