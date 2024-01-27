@@ -1,0 +1,262 @@
+Building the Driver and application:
+--------------------
+	Run the following command in the driver source folder:
+		$ make
+
+	Once the driver is compliled, the loadable module 99xx.ko will be created in the same folder.
+
+	**  '$' --this symbol represents the shell prompt on linux
+
+To build driver on kernels from v3.1.0 till latest:
+----------------------------------------------------
+  Since the device ID 99XX is included (as built-in) with kernel versions
+    starts from v3.1.0 and above, the following procedure is required to
+    follow to detect MCS99XX devices.
+
+  a) Go to the path,
+        "/usr/src/linux-x.y.z/drivers/tty/serial" in v3.1.0
+        $ cd /usr/src/linux-x.y.z/drivers/tty/serial/
+
+        "/usr/src/linux-x.y.z/drivers/tty/serial/8250" from v3.3.0 to latest
+        $ cd /usr/src/linux-x.y.z/drivers/tty/serial/8250/
+
+  b) Open file "8250_pci.c".
+    - find for the macro PCI_DEVICE_ID_NETMOS_9901, PCI_DEVICE_ID_NETMOS_9912,
+			 PCI_DEVICE_ID_NETMOS_9922, PCI_DEVICE_ID_NETMOS_9904,
+			 PCI_DEVICE_ID_NETMOS_9900, It will be found in two places,
+
+        1) In the struct definition "serial_pci_tbl[]"
+          - Comment the below lines,
+
+        "
+		{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9912,
+			0xA000, 0x1000,
+			0, 0, pbn_b0_1_115200 },
+
+		{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9922,
+			0xA000, 0x1000,
+			0, 0, pbn_b0_1_115200 },
+
+		{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9904,
+			0xA000, 0x1000,
+			0, 0, pbn_b0_1_115200 },
+
+		{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9900,
+			0xA000, 0x1000,
+			0, 0, pbn_b0_1_115200 },
+
+		{	PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9900,
+			0xA000, 0x3002,
+			0, 0, pbn_NETMOS9900_2s_115200 },
+        "
+
+        2) In the routine "pci_netmos_init"
+          - No need do any action, as we already done (a).
+
+  c) Re-compile the Linux kernel.			
+
+Loading the Driver:
+-------------------
+	
+	To load the driver use the following command:
+		$ insmod 99xx.ko
+
+	**  '$' --this symbol represent the shell prompt on linux			
+
+Unloading the Driver:
+---------------------
+
+	To unload the driver use the following command:
+		$rmmod 99xx
+
+	**  '$' --this symbol represent the shell prompt on linux			
+
+Installing the Driver:
+----------------------
+
+	To install the driver use the following command:
+		
+		make install
+
+Uninstalling the Driver:
+------------------------
+
+	To un-install the driver use the following command:
+		
+		make uninstall
+
+Features Supported:
+-------------------
+
+	The driver supports all the features supported by the MCS99XX serial device.
+		Note: only baud rates upto 3.0Mbps are implemented in the current driver.
+	
+Feature Configuration:
+----------------------
+
+  MCS99xx:
+  --------
+
+	This driver comes with a static array uart_99xx_contxts[ ] for all the 16 ports features in the 99xx.c file.
+	Where you can set the features like:
+		-DMA in RX
+		-DMA in TX
+		-enable/disable Flow control
+		-Flow control type
+		-RX fifo trigger level
+		-TX fifo trigger level
+		-x-on character
+		-x-off character
+
+	An example array setting for PORT 0 which will be recognised as /dev/ttyF0:			
+
+	//Port 0	--**This represents that this setting is for port 0 which will be recognised as /dev/ttyF0
+	{
+		.rx_dma_en	= 0,
+		.tx_dma_en	= 0,
+		.uart_mode	= MCS99XX_RS232_MODE,
+		.en_flow_control= 0,
+		.flow_ctrl_type = MCS99XX_XON_XOFF_HW_FLOWCONTROL,
+		.rxfifotrigger	= 64,
+		.txfifotrigger	= 64,		
+		.x_on		= SERIAL_DEF_XON,
+		.x_off		= SERIAL_DEF_XOFF,
+	},
+
+	To change the port to different modes for uart_mode settings use the following,
+
+	MCS99XX_RS422_MODE           (422 mode)
+	MCS99XX_RS485_HALF_DUPLEX    (485 half duplex)
+	MCS99XX_RS485_FULL_DUPLEX    (485 full duplex)  
+	
+Kernels:
+--------
+
+	This driver is currently developed and tested on 2.6.13 linux kernel and above 	
+
+Limitations:
+------------
+
+	This driver supports a maximum of 16 serial devices. This can be modified as required
+	
+
+Steps for setting parallel port :
+---------------------------------
+        1. rmmod lp
+        2. rmmod parport_pc
+        2. insmod /usr/lib/modules/2.6.13/kernel/drivers/parport/parport_pc io=0xb000 irq=10.
+
+Note: Here, the io and irq should be noted from lspci -v.
+
+Steps for setting cascade serial ports:
+----------------------------------------
+  
+  Building the Driver:
+  --------------------
+        Run the following command in the driver source folder:
+                $ make
+
+        Once the driver is compliled the loadable module 99xx.ko will be created in the same folder.
+
+        **  '$' --this symbol represents the shell prompt on linux
+
+
+  Installing the Driver:
+  ----------------------
+
+        To install the driver use the following command:
+
+                make install
+
+   Note:
+   -----
+	Before installing the driver the following steps need to follow when 
+	working with a multifunction board in cascade mode.
+
+	1.In the 99xx.c file, variable "mode" indicates the slave chip serial ports enable or not.
+
+		Choose "CASCADE_MODE" to enable slave chip serial ports.
+		Choose "NORMAL_MODE" to disable slave chip serial ports. 
+      
+      	2.In the 99xx.c file, variable "nr_funs" indicates the order of cascade ports.
+
+		Example in MCS99XX-8S:
+
+			nr_funs | Serial port | Function | Port number |  Chip
+			--------------------------------------------------------
+			   4    |     SP1     |     0    |    ttyF0    | Master
+			--------------------------------------------------------
+			   4    |     SP2     |     1    |    ttyF1    | Master
+			--------------------------------------------------------
+			   4    |     SP3     |     2    |    ttyF2    | Master
+			--------------------------------------------------------
+			   4    |     SP4     |     3    |    ttyF3    | Master
+			--------------------------------------------------------
+			   4    |     SP5     |     0    |    ttyF4    | Slave
+			--------------------------------------------------------
+			   4    |     SP6     |     1    |    ttyF5    | Slave
+			--------------------------------------------------------
+			   4    |     SP7     |     2    |    ttyF6    | Slave
+			--------------------------------------------------------
+			   4    |     SP8     |     3    |    ttyF7    | Slave
+
+
+
+			nr_funs | Serial port | Function | Port number |  Chip
+			--------------------------------------------------------
+			   2    |     SP1     |     0    |    ttyF0    | Master
+			--------------------------------------------------------
+			   2    |     SP2     |     1    |    ttyF1    | Master
+			--------------------------------------------------------
+			   2    |     SP3     |     2    |    ttyF4    | Master
+			--------------------------------------------------------
+			   2    |     SP4     |     3    |    ttyF5    | Master
+			--------------------------------------------------------
+			   2    |     SP5     |     0    |    ttyF2    | Slave
+			--------------------------------------------------------
+			   2    |     SP6     |     1    |    ttyF6    | Slave
+			--------------------------------------------------------
+			   2    |     SP7     |     2    |    ttyF3    | Slave
+			--------------------------------------------------------
+			   2    |     SP8     |     3    |    ttyF7    | Slave
+
+
+			nr_funs | Serial port | Function | Port number |  Chip
+			--------------------------------------------------------
+			   1    |     SP1     |     0    |    ttyF0    | Master
+			--------------------------------------------------------
+			   1    |     SP2     |     1    |    ttyF2    | Master
+			--------------------------------------------------------
+			   1    |     SP3     |     2    |    ttyF4    | Master
+			--------------------------------------------------------
+			   1    |     SP4     |     3    |    ttyF6    | Master
+			--------------------------------------------------------
+			   1    |     SP5     |     0    |    ttyF1    | Slave
+			--------------------------------------------------------
+			   1    |     SP6     |     1    |    ttyF3    | Slave
+			--------------------------------------------------------
+			   1    |     SP7     |     2    |    ttyF5    | Slave
+			--------------------------------------------------------
+			   1    |     SP8     |     3    |    ttyF7    | Slave
+
+  Uninstalling the Driver:
+  ------------------------
+
+        To un-install the driver use the following command:
+
+                make uninstall
+ 
+Steps for setting gpio[7:0] :
+-----------------------------
+
+	Execute the "gpio_99xx" application and the application will show:
+			
+		Please input the port of MCS99xx. (ex. /dev/ttyF0):
+
+	After specify the serial port, application will show these selections to access GPIO: 
+		0  : GPIO status
+		1  : Setup GPIO direction
+		2  : GPIO write
+		99 : Exit
+		:
+		
