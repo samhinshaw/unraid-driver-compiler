@@ -2,6 +2,8 @@ This Docker container can be used to compile drivers for unRAID.
 
 ## Instructions
 
+Note: Below, we use `6.1.64-Unraid` as the kernel version. You can see what your current kernel version is by running `uname -r`.
+
 1. Copy unRAID's kernel patches from your unRAID server, found at `/usr/src/<kernel version>` into `patches/`.
 1. Copy your driver source into `drivers`.
 1. Then build the container
@@ -17,6 +19,21 @@ This Docker container can be used to compile drivers for unRAID.
     make -C =/lib/modules/6.1.64-Unraid/build/ M=/drivers/Linux modules
     # or is it?
     make
+    ```
+1. Copy the compiled driver (99xx.ko) to your unraid's flash drive, at `/boot/config/user/unraid-driver-compiler/compiled-drivers`
+1. Add the following to your boot script (`/boot/config/go`):
+    ```sh
+    mkdir -p /lib/modules/6.1.64-Unraid/kernel/drivers/serial
+	cp 99xx.ko  /lib/modules/6.1.64-Unraid/kernel/drivers/serial
+	depmod -A
+	chmod +x mcs99xx
+    mkdir -p /etc/init.d/
+	cp mcs99xx /etc/init.d/
+    mkdir -p /etc/rc.d/rc3.d/
+    mkdir -p /etc/rc.d/rc5.d/
+	ln -s /etc/init.d/mcs99xx /etc/rc.d/rc3.d/Smcs99xx || true  	
+	ln -s /etc/init.d/mcs99xx /etc/rc.d/rc5.d/Smcs99xx || true
+    modprobe 99xx
     ```
 
 ## References
